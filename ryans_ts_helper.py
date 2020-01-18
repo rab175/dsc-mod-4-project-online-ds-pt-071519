@@ -558,10 +558,70 @@ def plot_forcast_model(ts, model, alpha=.01, title=None):
     plt.show()
 
 
+def expected_growth(model, steps=36, name='this area', alpha=.05, show=True):
+    """take a model and default arguments 'steps' (number of steps to forcast forward, default = 36),
+       'name' (name of area under analysis), 'alpha' (determines confidence interval), and 'show' 
+       (dtermines wheter or not to print results) and returns upper, mean, and lower projected growth
+       based on the confidence interval of projected mean growth."""
+    
+    # forcast future values from fitted model for speficied number of steps, get confidence interval
+    # and get mean forcasted model results
+    model_results = model.get_forecast(steps=steps)
+    ci = model_results.conf_int(alpha=alpha)
+    mean_forecast = model_results.predicted_mean
+    
+    # get confidence interval for printing
+    con_int = int((1-alpha)*100)
+    
+    # calculate the upper, mean, and lower potential growth based on confidence interval
+    upper_growth = (ci.iloc[-1,1] - ci.iloc[0,1]) / ci.iloc[0,1]
+    mean_growth = (mean_forecast[-1] - mean_forecast[0]) / mean_forecast[0]
+    lower_growth = (ci.iloc[-1,0] - ci.iloc[0,0]) / ci.iloc[0,0]
+    
+    # get the highest and lowest final values and show the range of potential outcomes
+    highest_final_value = ci.iloc[-1,1]
+    lowest_final_value = ci.iloc[-1,0]
+    range_of_growth_values = round((highest_final_value - lowest_final_value), 2)
+    
+    # if show is true print out the results
+    if show == True:
+        print(f'With a {con_int}% confidence interval {name} is forecasted to grow at the following rates after {steps} months: \n')
+        print(f'\t Upper Rate: {round((upper_growth*100),1)}%')
+        print(f'\t Mean Rate: {round((mean_growth*100),1)}%')
+        print(f'\t Lower Rate: {round((lower_growth*100),1)}%\n')
+        print(f'With a range of ${range_of_growth_values} between the higest and lowest projected values.')
+    
+    return upper_growth, mean_growth, lower_growth
 
 
+def ROI_calculator(model, ts, investment=10e6, steps=36, name='this area'):
+    """Takes a model and time series and default arguments for 'investment', 'steps', and 'name', 
+        and returns the amount of return projected over the time period specified"""
+    
+    # get the upper, mean, and lower growth projections based on confidence interval
+    upper, mean, lower = expected_growth(model=model,
+                                         steps = steps,
+                                         show = False)
 
-
+    # get the current median price of a property in the area under analysis
+    current_price = ts[-1]
+    
+    # determine how mant properties could be purched with the initial investment
+    n_properties = investment // current_price
+    
+    # calculate the amount of return we would get for the number of properties we purchased
+    upper_return = round(current_price * upper * n_properties, 2)
+    mean_return = round(current_price * mean * n_properties, 2)
+    lower_return = round(current_price * lower * n_properties, 2)
+    
+    # print the results
+    print(f'An initial investment of ${investment} in {name} would:\n')
+    print(f'\t Allow us to buy approximately {n_properties} properties.')
+    print(f'\t With a mean projected growth of {round((mean*100),1)}% over {steps} months we would net a ${mean_return} return')
+    print(f'\t or ${mean_return / n_properties} per property.\n')
+    print(f'\t With upper and lower growth rates at {round((upper*100),1)}% and {round((lower*100),1)}%,')
+    print(f'\t we can project a total return between ${lower_return} and ${upper_return}')
+    
 
 
 
