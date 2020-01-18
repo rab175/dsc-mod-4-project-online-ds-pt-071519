@@ -1,5 +1,22 @@
+# import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+import statsmodels.api as sm
+import itertools
+
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_pacf
+from statsmodels.graphics.tsaplots import plot_acf
+
+######################################
+# EXPLORATORY DATA ANALYSIS FUNCTIONS#
+######################################
+
 def growth_rates(df):
-    """Add 4 growth rate columns ('total', '5yr_growth', '3yr_growth', '1yr_growth') to a dataframe. 
+    """Add 4 growth rate columns ('total_growth', '5yr_growth', '3yr_growth', '1yr_growth') to a dataframe. 
        Dataframe must have columns with montlhy dates from 2009-01 to 2018-04"""
     
     # Determine the change in values from the beggining to the end of the time period     
@@ -277,3 +294,277 @@ def plot_avg_YoY(ts_dict):
     plt.xticks(rotation='vertical')
     plt.show()
 
+###########################
+# STATIONARITY FUNCTIONS #
+##########################
+
+def plot_rolling_stats(ts, title=None):
+    """takes in a time series and optional title and plots 
+       values, rolling mean, and rolling std."""
+    
+    # calculate rolling mean and standard deviation over 12 periods
+    roll_mean = ts.rolling(window=12, center=False).mean()
+    roll_std = ts.rolling(window=12, center=False).std()
+    
+    # plot the value, rolling mean, and rolling std in one plot
+    fig = plt.figure(figsize=(12,4))
+    orig = plt.plot(ts, color='blue', label='Value')
+    mean = plt.plot(roll_mean, color='orange', label='Rolling Mean')
+    std = plt.plot (roll_std, color='green', label='Rolling Std')
+    plt.legend(loc='best')
+    plt.title(title + ' ' + 'Rolling Mean & Standard Deviation')
+    plt.show()
+
+    
+def subtract_rollmean(ts, window=12):
+    """takes a takes a time series and window of periods (default = 12)
+       and subtracts the rolling mean and returns a new series"""
+    # calculate the rolling means and subtract them from the original time series
+    roll_mean = ts.rolling(window=window).mean()
+    ts_minus_rollmean = ts - roll_mean
+    
+    return ts_minus_rollmean
+    
+
+def subtract_w_rollmean(ts, halflife=4):
+    """takes a time series and halflife (default = 4)
+       and subtracts the weighted rolling mean and returns a new series"""
+    # calculate the weighted rolling mean and subtract it from the original time series
+    w_roll_mean = ts.ewm(halflife=halflife).mean()
+    ts_minus_w_rollmean =  ts - w_roll_mean
+    
+    return ts_minus_w_rollmean
+
+
+def adf_test(ts):
+    """takes a time series and uses the advanced Dickey-Fuller Test
+       to determine if the series is stationary and prints results"""
+    
+    # drop missing values
+    ts = ts.dropna()
+    
+    print ('Results of Dickey-Fuller Test:')
+    dftest = adfuller(ts)
+
+    # Extract and display test results in a user friendly manner
+    dfoutput = pd.Series(dftest[0:4], index=['Test Statistic',
+                                             'p-value',
+                                             '#Lags Used',
+                                             'Number of Observations Used'])
+    for key,value in dftest[4].items():
+        dfoutput['Critical Value (%s)'%key] = value
+    print (dfoutput)
+    
+def stationarity_check(ts, title=None):
+    """takes a time series and optional title and plots values, 
+       rolling mean, rolling std, and prints results of a Dickey-Fuller test"""
+    plot_rolling_stats(ts, title=title)
+    adf_test(ts)
+
+
+def stationarity_transformer(ts, alpha=.05, transform=None):
+    """Takes a time series and iterates through a number of transformation techniques
+       and applies the adfuller test to return p-values below accepted levels for stationarity.
+       Also takes arguments 'alpha' (default = .05) and 'transform' (default= None).
+       'alpha' represents the maximum p-value allowed to be added to the final list.
+       'transform' represents base transformations to make such as 'log' or 'sqrt'."""
+    
+    # create an empty list of p-values
+    p_values = []
+    
+    # set values to use for rolling means and weighted rolling means
+    roll_periods = [3, 6, 8, 12]
+    half_lifes = [1, 2, 3, 4]
+    
+    alpha = alpha
+    
+    # set base values and name for time series
+    v = ts
+    name = 'Original'
+    
+    # check transform and if there is a value for it replace 'v' and 'name'
+    if transform == 'log':
+        v = np.log(ts)
+        name = 'Log' 
+    elif transform == 'sqrt':
+        v = np.sqrt(ts)
+        name = 'Sqrt'
+    else:
+        None
+
+    # do adfuller test with no transformation other than base transformation and
+    # if values are less than or equal to alpha add to list
+    adf = adfuller(v)[1]
+    if adf <= alpha:
+        p_values.append((name , adf))
+    
+    # difference the base values by one period and conduct adfuller and add if <= alpha 
+    v_diff = v.diff(periods=1) 
+    adf_diff = adfuller(v_diff.dropna())[1]
+    if adf <= alpha:
+        p_values.append((name + 'diff: ', adf_diff))
+
+    # iterate through periods of rolling means and subtract from base values and check/add p-value 
+    for i in roll_periods:
+        iteration_name = name + '_minus_roll_mean_' + str(i) +':'
+        roll_minus = subtract_rollmean(v, window=i)
+        adf_roll_minus = adfuller(roll_minus.dropna())[1]
+        if adf_roll_minus <= alpha:
+            p_values.append((iteration_name, adf_roll_minus))
+    
+    # iterate through periods of rolling means and subtract from differenced values and check/add p-value 
+    for i in roll_periods:
+        iteration_name = name + '_minus_roll_mean_diff_' + str(i) +':'
+        roll_minus = subtract_rollmean(v, window=i)
+        roll_minus_diff = roll_minus.diff(periods=1)
+        adf_roll_minus_diff = adfuller(roll_minus.dropna())[1]
+        if adf_roll_minus_diff <= alpha:
+            p_values.append((iteration_name, adf_roll_minus_diff))
+    
+    # iterate through halflifes of weighted rolling means and subtract from base values and check/add p-value 
+    for h in half_lifes:
+        interation_name = name + '_minus_w_roll_mean_' + str(h) + ':'
+        w_roll_minus = subtract_w_rollmean(v, halflife=h)
+        adf_w_roll_minus = adfuller(w_roll_minus.dropna())[1]
+        if adf_w_roll_minus <= alpha:
+            p_values.append((iteration_name, adf_w_roll_minus))
+  
+    # iterate through halflifes of weighted rolling means and subtract from differenced values and check/add p-value 
+    for h in half_lifes:
+        iteration_name = name + '_minus_w_roll_mean_diff_' + str(h) + ':'
+        w_roll_minus = subtract_w_rollmean(v, halflife=h)
+        w_roll_minus_diff = w_roll_minus.diff(periods=1)
+        adf_w_roll_minus_diff = adfuller(w_roll_minus_diff.dropna())[1]
+        if adf_w_roll_minus_diff <= alpha:
+            p_values.append((iteration_name, adf_w_roll_minus_diff))
+        
+    return p_values
+      
+
+def all_stationarity(ts):
+    """takes a time series and checks stationarity with adfuller for multiple transformation types
+       and returns any transformation with a p-value less than or equal to .05"""
+    tests = [None, 'log', 'sqrt']
+    
+    for t in tests:
+        test = stationarity_transformer(ts, transform=t)
+        display(test)
+
+
+#######################
+# MODELING FUNCTIONS #
+######################
+
+
+def SARIMA_iterator(ts, order=2, show=False):
+    """takes a time series and optional arguments 'order' and 'show' and returns
+       an optimal order and seasonal order for a SARIMAX model based on lowest AIC score.
+       'order' indicates the end of the range of values the function will iterate through
+       for values (p,d,q) and (P,D,Q) -- default = 2
+       'show' is a True/False value that determines if the function displays step-by-step iterations."""
+
+    # Define the p, d and q parameters to take any value between 0 and 2
+    p = d = q = range(0, order)
+
+    # Generate all different combinations of p, q and q triplets
+    pdq = list(itertools.product(p, d, q))
+
+    # Generate all different combinations of seasonal p, q and q triplets
+    pdqs = [(x[0], x[1], x[2], 12) for x in list(itertools.product(p, d, q))]
+
+    # Run a grid with pdq and seasonal pdq parameters calculated above and get the best AIC value
+    ans = []
+    for comb in pdq:
+        for combs in pdqs:
+            try:
+                mod = sm.tsa.statespace.SARIMAX(ts,
+                                                order=comb,
+                                                seasonal_order=combs,
+                                                enforce_stationarity=False,
+                                                enforce_invertibility=False)
+
+                output = mod.fit()
+                ans.append([comb, combs, output.aic])
+                if show == True:
+                    print('ARIMA {} x {}12 : AIC Calculated ={}'.format(comb, combs, output.aic))
+            except:
+                continue
+            
+    ans_df = pd.DataFrame(ans, columns=['pdq', 'pdqs', 'aic'])
+    display(ans_df.loc[ans_df['aic'].idxmin()])
+
+
+def SARIMA_modeler(ts, order, s_order, trend):
+    """takes a time series, a tuple (p,d,q) for 'order', a tuple (P,D,Q,m) for 's_order'
+       and string ‘n’,’c’,’t’,’ct’ for no trend, constant, linear, and constant with linear trend, respectively,
+       and returns a fitted SARIMAX model"""
+    
+    # create a SRAIMAX model based on inputs 'order', 's_order', and 'trend'
+    SARIMA_MODEL = sm.tsa.statespace.SARIMAX(ts,
+                                         order= order,
+                                         seasonal_order= s_order,
+                                         trend= trend,
+                                         enforce_stationarity=False,
+                                         enforce_invertibility=False)
+    output = SARIMA_MODEL.fit()
+    
+    return output
+
+
+def model_details(model):
+    """takes a fitted SARIMAX model and displays coefficients, p-values, and AIC, and plots
+       diagnostic plots for heteroskedasticity, residual distribution, and correlation."""
+    
+    print('Model coefficients: ', model.params)
+    print('Model p_values: ', model.pvalues)
+    print('Model AIC: ', model.aic)
+    
+    model.plot_diagnostics(figsize=(15,12))
+
+
+def plot_model(ts, model, title=None):
+    """takes a time series and a fitted model and plots them together to observe fit."""
+    fig = plt.figure(figsize=(12,6))
+
+    plt.plot(model.predict(), label='model')
+    plt.plot(ts, label='original', alpha=.7)
+    plt.legend()
+    plt.title(title)
+    plt.xlabel('Dates')
+    plt.ylabel('Values')
+    plt.show()
+    
+def plot_forcast_model(ts, model, alpha=.01, title=None):
+    """takes a time series, a fitted model, and a level alpha (default = .01)
+       and plots forecasted future values and the confidence interval."""
+    
+    # get predicted values for 36 steps going forward     
+    prediction = model.get_forecast(steps=36)
+    
+    # get the confidence interval for predictions based on confidence level alpha
+    pred_conf = prediction.conf_int(alpha=alpha)
+    
+    # plot original values and predicted values with confidence interval
+    ax = ts.plot(label='observed', figsize=(16, 8))
+    prediction.predicted_mean.plot(ax=ax, label='Forecast')
+    ax.fill_between(pred_conf.index,
+                    pred_conf.iloc[:, 0],
+                    pred_conf.iloc[:, 1], color='k', alpha=.25)
+    ax.set_xlabel('Dates')
+    ax.set_ylabel('Values')
+
+    plt.legend()
+    plt.title(title)
+    plt.show()
+
+
+
+
+
+
+
+
+
+
+
+    
