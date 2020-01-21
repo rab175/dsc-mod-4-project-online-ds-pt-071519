@@ -70,15 +70,21 @@ def stacked_growth(df):
     colors = ['blue', 'red', 'gold', 'green']
 
     #plot clustered cities 
-    fig = plt.figure(figsize=(26, 8))
+#     fig = plt.figure(figsize=(14, 8))
 
     # sort by 1yr growth and plot clustered bar chart    
-    df.sort_values('1yr_growth').plot(x= 'city_zipcode', y = grow_rates, kind='bar', figsize=(16, 8))
+    df.sort_values('1yr_growth').plot(x= 'city_zipcode', 
+                                      y = grow_rates, 
+                                      kind='bar', 
+                                      figsize=(14, 8),
+                                      ylabel='Percent Growth (y * 100)')
+    
     
     # plot growth rate means as horizontal lines
     plt.hlines(y= means, xmin=-1, xmax=len(df), color=colors, label=('Mean growth'))
     
     plt.legend()
+    plt.ylabel('Percent Growth')
     plt.title('City_zipcode Growth Rates')
     
     plt.show()
