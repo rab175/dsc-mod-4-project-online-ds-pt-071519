@@ -522,8 +522,8 @@ def model_details(model):
        diagnostic plots for heteroskedasticity, residual distribution, and correlation."""
     
     print('Model coefficients: ', model.params)
-    print('Model p_values: ', model.pvalues)
-    print('Model AIC: ', model.aic)
+    print('\n Model p_values: ', model.pvalues)
+    print('\n Model AIC: ', model.aic)
     
     model.plot_diagnostics(figsize=(12,12))
 
