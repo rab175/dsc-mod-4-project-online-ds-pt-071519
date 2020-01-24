@@ -70,21 +70,19 @@ def stacked_growth(df):
     colors = ['blue', 'red', 'gold', 'green']
 
     #plot clustered cities 
-#     fig = plt.figure(figsize=(14, 8))
+    fig = plt.figure(figsize=(14, 8))
 
     # sort by 1yr growth and plot clustered bar chart    
     df.sort_values('1yr_growth').plot(x= 'city_zipcode', 
                                       y = grow_rates, 
                                       kind='bar', 
-                                      figsize=(14, 8),
-                                      ylabel='Percent Growth (y * 100)')
+                                      figsize=(14, 8))
     
     
     # plot growth rate means as horizontal lines
     plt.hlines(y= means, xmin=-1, xmax=len(df), color=colors, label=('Mean growth'))
     
     plt.legend()
-    plt.ylabel('Percent Growth')
     plt.title('City_zipcode Growth Rates')
     
     plt.show()
@@ -97,7 +95,7 @@ def graph_growth(df):
     
     f = plt.figure(figsize= ( 16, 16))
     # create space between plots
-    plt.subplots_adjust(hspace= .5)
+    plt.subplots_adjust(hspace= 1)
 
     # set the value for x to the key for the city name in the dataframe
     x = 'city_zipcode'
@@ -233,14 +231,15 @@ def plot_time_series2(ts):
     """takes a dictionary of time series dataframes and makes three plots 
        for each key:value pair: 'value', YoY_change', and 'YoY_rate_change'"""
     
-    # creat figure and space between subplots
-    fig = plt.figure(figsize=(16,40))
-    plt.subplots_adjust(hspace= 1)
-    
     # create subplot values
     nrows = len(ts)
     ncols = 3
     
+    # creat figure and space between subplots
+    fig = plt.figure(figsize=(16,(nrows*3)))
+    plt.subplots_adjust(hspace= 1.2)
+    
+   
     # use dict keys as plot titles
     titles = list(ts.keys())
     
@@ -258,7 +257,8 @@ def plot_time_series2(ts):
             ax = fig.add_subplot(nrows, ncols, axs)
             ts[v][x].plot(label=x, ax=ax)
             plt.title(titles[i] + '_' + x)
-            plt.ylabel(x)
+            plt.ylabel(x, fontsize= 10)
+            plt.xticks(fontsize= 10, rotation=45)
             plt.hlines(y=0, xmin='2009-01', xmax='2018-04', colors='orange', linestyles='--')
 
     plt.show()
@@ -525,7 +525,7 @@ def model_details(model):
     print('Model p_values: ', model.pvalues)
     print('Model AIC: ', model.aic)
     
-    model.plot_diagnostics(figsize=(15,12))
+    model.plot_diagnostics(figsize=(12,12))
 
 
 def plot_model(ts, model, title=None):
