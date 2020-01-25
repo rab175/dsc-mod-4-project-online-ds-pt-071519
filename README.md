@@ -5,9 +5,10 @@
 * Final project notebook is titled **Mod 4 Project Notebook**
 * There are two files I created to store functions:
 > ryans_ts_helper.py - contains many functions for EDA, data cleaning and formatting, and modeling
+
 > SARIMA_grid_search.py - contains functions for conducting grid serach for SARIMA parameters
 
-* non-technical presentations is linked in the notebook
+* [non-technical presentation] (https://docs.google.com/presentation/d/17PkAMyvhgYcwayZvrQ0b8f4zLqRy2PF1TfWArZ2nbGY/edit?usp=sharing)
 
 
 ## Introduction
