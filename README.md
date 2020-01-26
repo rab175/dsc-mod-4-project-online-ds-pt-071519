@@ -2,6 +2,7 @@
 # Module 4 -  Final Project Specifications
 
 ## Student Updates for Final Submission
+
 * Final project notebook is titled **Mod 4 Project Notebook**
 * There are two files I created to store functions:
 > ryans_ts_helper.py - contains many functions for EDA, data cleaning and formatting, and modeling
