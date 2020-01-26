@@ -1,111 +1,56 @@
 
-# Module 4 -  Final Project Specifications
+# Mod 4 Project - Real Estate Portfolio Analysis
 
-## Student Updates for Final Submission
+This notebook contains the data processing and analysis for the Flatiron School Data Science Bootcamp Mod 4 Project. In this module we're learning about time series analysis and SARIMA models. Below we'll analyze a dataset comprised of Zillow data - zipcodes from around the U.S., and seek to answer the question:
 
-* Final project notebook is titled **Mod 4 Project Notebook**
-* There are two files I created to store functions:
-> ryans_ts_helper.py - contains many functions for EDA, data cleaning and formatting, and modeling
+"What are the top 5 best zipcodes to invest in?
 
-> SARIMA_grid_search.py - contains functions for conducting grid serach for SARIMA parameters
+In this case we'll act as a consultant to a real estate investment firm, but are otherwise left to our own devices to determine how to qualify the term "best". We'll further state our business case and assumptions below, but we'll start by stating that "best" will be more complex than the fastest growing and most expensive areas. We'll seek to create a balanced portfolio of properties that match or exceed market returns, but are spread across value segments to diversify our holdings and thereby mitigate risk.
 
-* [non-technical presentation] (https://docs.google.com/presentation/d/17PkAMyvhgYcwayZvrQ0b8f4zLqRy2PF1TfWArZ2nbGY/edit?usp=sharing)
+To make this notebook more readable I've placed a number of functions I created (or found) in two separate text files and imported them into this notebook. Check out **'ryans_ts_helper.py'** and **'SARIMA_grid_search.py'** to see some of those functions.
 
+See those files and presentation here:
 
-## Introduction
+[ryans_ts_helper.py](https://github.com/rab175/dsc-mod-4-project-online-ds-pt-071519/blob/master/ryans_ts_helper.py)
 
-In this lesson, we'll review all the guidelines and specifications for the final project for Module 4.
+[SARIMA_grid_search.py](https://github.com/rab175/dsc-mod-4-project-online-ds-pt-071519/blob/master/SARIMA_grid_search.py)
 
-## Objectives
+[Non-technical Presentation](https://docs.google.com/presentation/d/17PkAMyvhgYcwayZvrQ0b8f4zLqRy2PF1TfWArZ2nbGY/edit?usp=sharing)
 
-* Understand all required aspects of the Final Project for Module 4
-* Understand all required deliverables
-* Understand what constitutes a successful project
+### Outline
 
-### Final Project Summary
+This notebook is organized as follows:
 
-Another module down--you're absolutely crushing it! For this project, you'll get to flex your **_Time-Series_** muscles!
-
-<img src='https://raw.githubusercontent.com/learn-co-curriculum/dsc-mod-4-project/master/images/timegif.gif'>
-
-For this module's final project, we're going to put your newfound **_Time Series Analysis_** skills to the test. You will be forecasting real estate prices of various zipcodes using data from [Zillow](https://www.zillow.com/research/data/). However, this won't be as straightforward as just running a time-series analysis--you're going to have to make some data-driven decisions and think critically along the way!
-
-### The Project
-
-For this project, you will be acting as a consultant for a fictional real-estate investment firm. The firm has asked you what seems like a simple question:
-
-> what are the top 5 best zipcodes for us to invest in?
-
-This may seem like a simple question at first glance, but there's more than a little ambiguity here that you'll have to think through in order to provide a solid recommendation. Should your recommendation be focused on profit margins only? What about risk? What sort of time horizon are you predicting against?  Your recommendation will need to detail your rationale and answer any sort of lingering questions like these in order to demonstrate how you define "best".
-
-As mentioned previously, the data you'll be working with comes from the [Zillow Research Page](https://www.zillow.com/research/data/). However, there are many options on that page, and making sure you have exactly what you need can be a bit confusing. For simplicity's sake, we have already provided the dataset for you in this repo--you will find it in the file `zillow_data.csv`.
-
-## The Deliverables
-
-The goal of this project is to have you complete a very common real-world task in regard to Time-Series Modeling. However, real world problems often come with a significant degree of ambiguity, which requires you to use your knowledge of statistics and data science to think critically about and answer. While the main task in this project is Time-Series Modeling, that isn't the overall goal--it is important to understand that Time-Series Modeling is a tool in your toolbox, and the forecasts it provides you are what you'll use to answer important questions.
-
-In short, to pass this project, demonstrating the quality and thoughtfulness of your overall recommendation is at least as important as successfully building a Time-Series model!
-
-Online students should complete the following 4 deliverables for this project:
-
-* A well-documented **_Jupyter Notebook_** containing any code you've written for this project (use the notebook in this repo, `mod_4_starter_notebook.ipynb`). This work will need to be pushed to your GitHub repository in order to submit your project.
-* An organized **README.md** file in the GitHub repository that describes the contents of the repository. This file should be the source of information for navigating through the repository.
-* A **_[Blog post](https://github.com/learn-co-curriculum/dsc-welcome-blogging)_**.
-* An **_'Executive Summary' PowerPoint Presentation_** that explains your rationale and methodology for determining the best zipcodes for investment.
-
-Note: On-campus students may have different deliverables, please speak with your instructor.
-
-### Jupyter Notebook Must-Haves
-
-For this project, you will be provided with a jupyter notebook containing some starter code. If you inspect the zillow dataset file, you'll notice that the datetimes for each sale are the actual column names--this is a format you probably haven't seen before. To ensure that you're not blocked by preprocessing, we've provided some helper functions to help simplify getting the data into the correct format. You're not required to use this notebook or keep it in its current format, but we strongly recommend you consider making use of the helper functions so you can spend your time working on the parts of the project that matter.
-
-#### Organization/Code Cleanliness
-
-The notebook should be well organized, easy to follow, and code is modularized and commented where appropriate.
-
-* Level Up: The notebook contains well-formatted, professional looking markdown cells explaining any substantial code. All functions have docstrings that act as professional-quality documentation.
-* The notebook is written to technical audiences with a way to both understand your approach and reproduce your results. The target audience for this deliverable is other data scientists looking to validate your findings.
-* Data visualizations you create should be clearly labeled and contextualized--that is, they fit with the surrounding code or problems you're trying to solve. No dropping data visualizations randomly around your notebook without any context!
-
-#### Findings
-
-Your notebook should briefly mention the metrics you have defined as "best", so that any readers understand what technical metrics you are trying to optimize for (for instance, risk vs profitability, ROI yield, etc.). You do **not** need to explain or defend your your choices in the notebook--the blog post and executive summary presentation are both better suited to that sort of content. However, the notebook should provide enough context about your definition for "best investment" so that they understand what the code you are writing is trying to solve.
-
-#### Visualizations
-
-Time-Series Analysis is an area of data science that lends itself well to intuitive data visualizations. Whereas we may not be able to visualize the best choice in a classification or clustering problem with a high-dimensional dataset, that isn't an issue with Time Series data. As such, **_any findings worth mentioning in this problem are probably also worth visualizing_**. Your notebook should make use of data visualizations as appropriate to make your findings obvious to any readers.
-
-Also, remember that if a visualization is worth creating, then it's also worth taking the extra few minutes to make sure that it is easily understandable and well-formatted. When creating visualizations, make sure that they have:
-
-* A title
-* Clearly labeled X and Y axes, with appropriate scale for each
-* A legend, when necessary
-* No overlapping text that makes it hard to read
-* An intelligent use of color--multiple lines should have different colors and/or symbols to make them easily differentiable to the eye
-* An appropriate amount of information--avoid creating graphs that are "too busy"--for instance, don't create a line graph with 25 different lines on it
-
-<center><img src='images/bad-graph-1.png' height=100% width=100%>
-There's just too much going on in this graph for it to be readable--don't make the same mistake! (<a href='http://genywealth.com/wp-content/uploads/2010/03/line-graph.php_.png'>Source</a>)</center>
-
-### Blog Post Must-Haves
-
-Refer back to the [Blogging Guidelines](https://github.com/learn-co-curriculum/dsc-welcome-blogging) for the technical requirements and blog ideas.
+1. Business Case
+2. Data Import and Cleaning
+3. Exploratory Data Analysis
+4. Modeling
+5. Results and Conclusions
 
 
-### Executive Summary Must-Haves
+### Business Case
 
-Your presentation should:
+Our real estate investment strategy will involve choosing a combination of 5 separate zip codes from across the United States that range from high to low priced properties, and determining a strategy with which to invest $50mm across them. This strategy is focused on acquiring a diverse range of assets, acknowledging that it also may involve working in very different markets and locales, and may involve acquiring properties that have very different management and sales requirements. Nevertheless we believe that this strategy will allow us to benefit from having access to the performance of a wide range of properties and markets, both helping spread risk, and potentially find opportunities for over-performance.
 
-Contain between 5-10 professional quality slides detailing:
+We will disperse our $50mm of investment resources evenly across the 5 zipcodes, and across three different value segments: High, Medium, and Low cost areas, defined in more detail below.
 
-* A high-level overview of your methodology and findings, including the 5 zipcodes you recommend investing in
-* A brief explanation of what metrics you defined as "best" in order complete this project
+Ultimately our goal is to implement a strategy that will at least match or exceed the performance of current housing indices.
 
-As always, this prresentation should also:
+### Modeling Approach
 
-* Take no more than 5 minutes to present
-* Avoid technical jargon and explain results in a clear, actionable way for non-technical audiences.
+We will work through each segment of value areas building SARIMA models for each area we've chosen, with the ultimate goal of choosing 1 high value, 2 medium value, and 2 lower value areas to invest in. 
 
-## Grading Rubric 
+We will use a few different processes to experiment with stationarity and parameter selection, using methods we were taught in class as well as methods I have decided to incorporate on my own (e.g. grid search). 
 
-Online students can find a PDF of the grading rubric for the project [here](https://github.com/learn-co-curriculum/dsc-mod-4-project/blob/master/module4_project_rubric.pdf). _Note: On-campus students may have different requirements, please speak with your instructor._
+SARIMA is an approach for modeling univariate time series data that may have a trend or seasonality. The model takes multiple parameters that I understand can be very dependent on deep domain knowledge (which I hope to grow), but we've learned methods for iterating through parameters that may help. 
+
+Despite the fact that SARIMA is designed to deal with non-stationary data, for the sake of learning I have tried a few things out in the section that I think are fun.
+
+Modeling for each zipcode will follow the following rough outline: 
+- Check for stationarity (understanding this isn't entirely necessary)
+    - For the first model I will do some transformations for learning purposes
+- Inspect Autocorrelation Function and Partial Autocorrelation Function
+- Identify optimal model parameters 
+- Fit model and inspect diagnostics
+- Plot model and forecast
+- Check future values and choose final city_zipcodes
